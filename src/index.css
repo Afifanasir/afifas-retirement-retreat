@@ -183,10 +183,16 @@ html, body, #root { margin: 0; height: 100%; background: #efe9da; overflow: hidd
 .feel-stir { animation: stir .8s ease-in-out; }
 
 
-/* ---- frame: the scene covers the window (landscape); the slim nav bar floats over its right edge ---- */
+/* ---- frame: the whole scene, centred over a blurred extension of itself; the slim nav bar floats at the right ---- */
 @font-face { font-family: 'Branch'; src: url('/fonts/Branch.otf') format('opentype'); font-display: block; }
 .frame { position: fixed; inset: 0; z-index: 1; overflow: hidden; }
-.stage-box { position: absolute; overflow: hidden; }
+.stage-box { position: absolute; overflow: hidden; box-shadow: 0 0 48px 6px rgba(40, 30, 10, .16); }
+.backdrop { position: absolute; inset: 0; background: url(/intro/backdrop-day.jpg) center / cover; transition: opacity 1.2s ease; }
+.backdrop.night { background-image: url(/intro/backdrop-night.jpg); opacity: 0; }
+.backdrop.night.on { opacity: 1; }
+.backdrop .side { position: absolute; top: 0; bottom: 0; background: inherit; background-size: auto 100%; transform: scaleX(-1); }
+.backdrop .side.left { left: 0; background-position: left center; }   /* mirrored: the scene's left edge meets the seam */
+.backdrop .side.right { right: 0; background-position: right center; }
 .navbar { position: absolute; top: 0; right: 0; bottom: 0; z-index: 2; width: 56px; display: flex; flex-direction: column;
   justify-content: flex-end; align-items: center; gap: 14px; padding-bottom: 40px; box-sizing: border-box;
   /* the Figma gradient (0% #FFFFFF 0, 7% #FAF7F0 45%, 100% #F2F0E5 75%) over a soft blur of the scene behind it */

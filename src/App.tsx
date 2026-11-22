@@ -64,16 +64,16 @@ const MAT = [59, 33.5, 72.2, 37.2]                             // the prayer rug
 const onMat = (px: number, py: number) => inBox(px, py, MAT)
 
 // the scene is a fixed 1440x1080 frame; the nav bar sits beside it (to its right), or under it on a portrait screen
-// Landscape: the scene covers the whole window (no side bars). Any overflow is cropped, centred horizontally
-// and taken mostly from the bottom (flower bank) rather than the sky/terrace: CROP_TOP of it comes off the top.
-// The slim nav bar floats over the right edge. Portrait (phones): the whole scene fits, nav bar underneath.
-const NAV_H = 56, CROP_TOP = 0.3
+// Landscape: the whole scene is always visible (never cropped), centred; the rest of the window is filled by a
+// soft blurred extension of the scene, and the slim nav bar floats at the window's right edge.
+// Portrait (phones): the whole scene fits, nav bar underneath.
+const NAV_H = 56
 function useLayout() {
   const fit = () => {
     const vw = window.innerWidth, vh = window.innerHeight, portrait = vw < vh
     if (portrait) return { portrait, s: Math.min(vw / W, (vh - NAV_H) / H), ox: 0, oy: 0 }
-    const s = Math.max(vw / W, vh / H)
-    return { portrait, s, ox: (vw - W * s) / 2, oy: (vh - H * s) * CROP_TOP }
+    const s = Math.min(vw / W, vh / H)
+    return { portrait, s, ox: (vw - W * s) / 2, oy: (vh - H * s) / 2 }
   }
   const [l, setL] = useState(fit)
   useEffect(() => {
@@ -388,6 +388,12 @@ export default function App() {
   return (
     <div className={`viewport ${portrait ? 'portrait' : ''} ${night ? 'night' : 'day'}`}>
      <div className="frame" style={{ '--s': scale } as React.CSSProperties}>
+      {!portrait && ['day', 'night'].map((m) => (
+        // blurred copy of the scene behind everything, plus its own left/right edges mirrored outward from the seams
+        <div key={m} className={`backdrop ${m} ${night === (m === 'night') ? 'on' : ''}`}>
+          {ox > 0 && <><i className="side left" style={{ width: ox + 2 }} /><i className="side right" style={{ width: ox + 2 }} /></>}
+        </div>
+      ))}
       <div className="stage-box" style={portrait ? { width: W * scale, height: H * scale } : { left: ox, top: oy, width: W * scale, height: H * scale }}>
       <div ref={stage} className={`stage ${night ? 'night' : 'day'} ${hover ? 'pointing' : ''}`}
         onClick={entered ? onClick : undefined} onMouseMove={entered ? onMove : undefined}

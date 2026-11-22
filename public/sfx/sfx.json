@@ -1,0 +1,83 @@
+{
+ "ambience-day": [
+  "ambience-day-1.mp3"
+ ],
+ "lake": [
+  "lake-1.mp3"
+ ],
+ "ambience-night": [
+  "ambience-night-1.mp3",
+  "ambience-night-2.mp3"
+ ],
+ "breeze": [
+  "breeze-1.mp3"
+ ],
+ "music": [
+  "music-1.mp3",
+  "music-2.mp3",
+  "music-3.mp3"
+ ],
+ "flowers": [
+  "flowers-1.mp3",
+  "flowers-2.mp3",
+  "flowers-3.mp3",
+  "flowers-4.mp3"
+ ],
+ "waves": [
+  "waves-1.mp3",
+  "waves-2.mp3",
+  "waves-3.mp3",
+  "waves-4.mp3"
+ ],
+ "tap": [
+  "tap-1.mp3",
+  "tap-2.mp3",
+  "tap-3.mp3",
+  "tap-4.mp3"
+ ],
+ "goat": [
+  "goat-1.mp3",
+  "goat-2.mp3",
+  "goat-3.mp3",
+  "goat-4.mp3",
+  "goat-5.mp3",
+  "goat-6.mp3"
+ ],
+ "cat": [
+  "cat-1.mp3",
+  "cat-2.mp3",
+  "cat-3.mp3"
+ ],
+ "parrot": [
+  "parrot-1.mp3",
+  "parrot-2.mp3",
+  "parrot-3.mp3",
+  "parrot-4.mp3",
+  "parrot-5.mp3",
+  "parrot-6.mp3",
+  "parrot-7.mp3"
+ ],
+ "chandelier": [
+  "chandelier-1.mp3"
+ ],
+ "leaves": [
+  "leaves-1.mp3",
+  "leaves-2.mp3",
+  "leaves-3.mp3"
+ ],
+ "sign-creak": [
+  "sign-creak-1.mp3",
+  "sign-creak-2.mp3",
+  "sign-creak-3.mp3",
+  "sign-creak-4.mp3"
+ ],
+ "coffee": [
+  "coffee-1.mp3",
+  "coffee-2.mp3",
+  "coffee-3.mp3"
+ ],
+ "bell": [
+  "bell-1.mp3",
+  "bell-2.mp3"
+ ]
+}

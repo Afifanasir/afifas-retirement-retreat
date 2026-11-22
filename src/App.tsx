@@ -235,11 +235,12 @@ export default function App() {
   // pop-in), then everything else (night art, poses, clips) preloads quietly so switching modes is instant
   useEffect(() => {
     const decode = (src: string) => { const i = new Image(); i.src = src; return i.decode().catch(() => undefined) }
-    const key = [night ? LAYERS.skyNight : LAYERS.sky, night ? LAYERS.farNight : LAYERS.far, LAYERS.meadow, LAYERS.foreground,
+    const key = [night ? LAYERS.skyNight : LAYERS.sky, night ? LAYERS.farNight : LAYERS.far,
+      night ? LAYERS.meadowNight : LAYERS.meadow, night ? LAYERS.foregroundNight : LAYERS.foreground,
       ...items.filter((it) => it.kind === 'terrace' || it.kind === 'tree').map((it) => (night && it.night) || it.src)]
     Promise.all(key.map(decode)).then(() => {
       setSceneReady(true)
-      ;[LAYERS.sky, LAYERS.skyNight, LAYERS.far, LAYERS.farNight, ...items.flatMap((it) => [it.src, it.night ?? it.src]),
+      ;[LAYERS.sky, LAYERS.skyNight, LAYERS.far, LAYERS.farNight, LAYERS.meadow, LAYERS.meadowNight, LAYERS.foreground, LAYERS.foregroundNight, ...items.flatMap((it) => [it.src, it.night ?? it.src]),
         ...['afifa-sitting', 'afifa-walking', 'afifa-walking-1', 'afifa-praying', 'parrot-left-on-branch', 'lake-mask'].map(asset),
         '/intro/bar-night.jpg', '/world/particles/firefly-01.webp'].forEach(decode)
       preloadClips(['cat-black-run', 'cat-orange-pounce', 'goat-leap', 'parrot-fly', 'parrot-takeoff', 'afifa-lie-down'])
@@ -399,12 +400,12 @@ export default function App() {
         onClick={entered ? onClick : undefined} onMouseMove={entered ? onMove : undefined}
         style={{ width: W, height: H, transform: `scale(${scale})` }}>
         <img className="layer" src={night ? LAYERS.skyNight : LAYERS.sky} alt="" style={{ zIndex: Z.sky }} />
-        <img className="layer tint" src={LAYERS.meadow} alt="" style={{ zIndex: Z.sky, top: '-10%' }} />
+        <img className="layer" src={night ? LAYERS.meadowNight : LAYERS.meadow} alt="" style={{ zIndex: Z.sky, top: '-10%' }} />
         <img ref={farRef} className="layer" src={night ? LAYERS.farNight : LAYERS.far} alt=""
           style={{ zIndex: Z.far, top: '-21%', visibility: glFar ? 'hidden' : undefined }} />
         {GL_OK && <GLLayer day={LAYERS.far} nightSrc={LAYERS.farNight} mask={asset('lake-mask')} night={night} touch={waterTouch} onReady={setGlFar}
           style={{ zIndex: Z.far, top: '-21%' }} />}
-        <img ref={meadowRef} className="layer tint" src={LAYERS.meadow} alt="" style={{ zIndex: Z.meadow, top: '3%' }} />
+        <img ref={meadowRef} className="layer" src={night ? LAYERS.meadowNight : LAYERS.meadow} alt="" style={{ zIndex: Z.meadow, top: '3%' }} />
         <div className="breeze" style={{ zIndex: Z.meadow }} />
 
         {items.map(sprite)}
@@ -436,7 +437,7 @@ export default function App() {
         {night && <div className="moonlight" style={{ zIndex: Z.fx - 1 }} />}
 
         <div className="layer lean" style={{ zIndex: Z.foreground, top: '10%' }}>
-          <img ref={fgRef} className="layer tint" src={LAYERS.foreground} alt="" style={glFg ? { visibility: 'hidden' } : undefined} />
+          <img ref={fgRef} className="layer" src={night ? LAYERS.foregroundNight : LAYERS.foreground} alt="" style={glFg ? { visibility: 'hidden' } : undefined} />
           {GL_OK && <GLLayer day={LAYERS.foreground} night={night} touch={flowerTouch} onReady={setGlFg} />}
         </div>
         <Particles night={night} />

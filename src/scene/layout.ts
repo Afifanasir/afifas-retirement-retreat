@@ -16,7 +16,8 @@ const at = (id: string, name: string, x: number, b: number, w: number, z: number
 
 export const LAYERS = {
   sky: W('sky-day'), skyNight: W('sky-night'), far: W('far-day'), farNight: W('far-night'),
-  meadow: W('meadow'), foreground: W('foreground'),
+  // night versions are baked (not a CSS filter): Safari doesn't paint filters on these full-scene layers
+  meadow: W('meadow'), meadowNight: W('meadow-night'), foreground: W('foreground'), foregroundNight: W('foreground-night'),
 }
 
 export const Z = { sky: 0, far: 1, terrace: 2, onTerrace: 3, meadow: 4, actors: 10, tree: 20, foreground: 30, fx: 40 }

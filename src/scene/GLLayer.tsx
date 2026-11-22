@@ -11,7 +11,11 @@ export const GL_OK = (() => { try { return !!document.createElement('canvas').ge
 const VERT = `attribute vec2 p; varying vec2 uv;
 void main() { uv = vec2(p.x * .5 + .5, .5 - p.y * .5); gl_Position = vec4(p, 0., 1.); }`
 
-const FRAG = `precision mediump float;
+const FRAG = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
 varying vec2 uv;
 uniform sampler2D tDay, tNight, tMask;
 uniform float t, nightMix, amt, water, aspect;
@@ -52,7 +56,8 @@ void main() {
 // never hangs: a failed download retries once (cache-busted), then gives up so the plain <img> stays in charge
 const load = (src: string, retry = true): Promise<HTMLImageElement> => new Promise((ok, fail) => {
   const i = new Image()
-  i.onload = () => ok(i)
+  // wait for the pixels too: Safari can fire onload before the image is decoded, and copying it then copies nothing
+  i.onload = () => i.decode().then(() => ok(i), () => ok(i))
   i.onerror = () => (retry ? load(`${src}${src.includes('?') ? '&' : '?'}r=${Date.now()}`, false).then(ok, fail) : fail(new Error(`texture ${src}`)))
   i.src = src
 })
@@ -72,7 +77,7 @@ export function GLLayer({ day, nightSrc, mask, night, touch, style, onReady }: {
     let raf = 0, alive = true
     const lost = (e: Event) => { e.preventDefault(); cancelAnimationFrame(raf); onReady?.(false) }
     canvas.addEventListener('webglcontextlost', lost)
-    Promise.all([day, nightSrc ?? day, mask ?? day].map((s) => load(s))).then(([a, b, m]) => {
+    Promise.all([day, nightSrc ?? day, mask ?? day].map((s) => load(s))).then(async ([a, b, m]) => {
       if (!alive) return
       canvas.width = a.naturalWidth; canvas.height = a.naturalHeight
       gl.viewport(0, 0, canvas.width, canvas.height)
@@ -88,12 +93,39 @@ export function GLLayer({ day, nightSrc, mask, night, touch, style, onReady }: {
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW)
       const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
+      // Safari's WebGL rejects lossy WebP-with-alpha straight from an <img> ("bad image data") and then samples the
+      // empty texture as solid black, so every image goes through a plain 2D canvas first (works in all browsers)
+      const pixels = new Map<HTMLImageElement, HTMLCanvasElement>()
+      const viaCanvas = (img: HTMLImageElement) => {
+        let c = pixels.get(img)
+        if (!c) {
+          c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight
+          c.getContext('2d')!.drawImage(img, 0, 0); pixels.set(img, c)
+        }
+        return c
+      }
+      // a copy with no visible pixels at all means the browser handed over an undecoded image
+      const blank = (img: HTMLImageElement) => {
+        const t = document.createElement('canvas'); t.width = t.height = 32
+        const g = t.getContext('2d', { willReadFrequently: true })!; g.drawImage(viaCanvas(img), 0, 0, 32, 32)
+        const d = g.getImageData(0, 0, 32, 32).data
+        for (let k = 3; k < d.length; k += 4) if (d[k] > 8) return false
+        return true
+      }
+      if ([a, b, m].some(blank)) {
+        pixels.clear()
+        await new Promise((r) => setTimeout(r, 300))                  // one more chance after a beat
+        if (!alive) return
+        if ([a, b, m].some(blank)) { onReady?.(false); return }
+      }
       ;[a, b, m].forEach((img, i) => {
         gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, gl.createTexture())
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, viaCanvas(img))
         ;[gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach((w) => gl.texParameteri(gl.TEXTURE_2D, w, gl.CLAMP_TO_EDGE))
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
       })
+      // any upload/setup error: let the plain <img> stay rather than show an empty (black) texture
+      if (gl.getError() !== gl.NO_ERROR) { onReady?.(false); return }
       const u = (k: string) => gl.getUniformLocation(prog, k)
       gl.uniform1i(u('tDay'), 0); gl.uniform1i(u('tNight'), 1); gl.uniform1i(u('tMask'), 2)
       gl.uniform1f(u('water'), mask ? 1 : 0); gl.uniform1f(u('aspect'), a.naturalWidth / a.naturalHeight)
